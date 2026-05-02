@@ -2,8 +2,8 @@
 
 from typing import Any, Dict
 
-from app.github.pr_creator import PRCreator
 from app.schemas.api import PRRequest, PRResponse
+from app.shared import orchestrator, pr_creator
 from fastapi import APIRouter, HTTPException, status
 
 router = APIRouter(tags=["github"])
@@ -29,8 +29,13 @@ async def create_pull_request(request: PRRequest) -> PRResponse:
         HTTPException: If PR creation fails
     """
     try:
-        # Initialize PR creator
-        pr_creator = PRCreator()
+        # Get fix data from orchestrator cache
+        fix_data = orchestrator._fix_cache.get(request.fix_id)
+        if not fix_data:
+            raise ValueError(f"Fix data not found for fix_id: {request.fix_id}")
+        
+        # Store fix data in PR creator cache
+        pr_creator.store_fix_data(request.fix_id, fix_data)
         
         # Create pull request
         result = await pr_creator.create_pr(
@@ -42,9 +47,9 @@ async def create_pull_request(request: PRRequest) -> PRResponse:
         )
         
         return PRResponse(
-            pr_number=result.get("pr_number"),
-            pr_url=result.get("pr_url"),
-            branch=result.get("branch"),
+            pr_number=result.get("pr_number", 0),
+            pr_url=result.get("pr_url", ""),
+            branch=result.get("branch", ""),
             status="created",
             message="Pull request created successfully"
         )
@@ -82,7 +87,6 @@ async def get_pr_status(repository: str, pr_number: int) -> Dict[str, Any]:
         HTTPException: If PR not found
     """
     try:
-        pr_creator = PRCreator()
         status_info = await pr_creator.get_pr_status(repository, pr_number)
         return status_info
         

@@ -3,8 +3,8 @@
 from typing import Any, Dict
 from uuid import uuid4
 
-from app.pipeline.orchestrator import WorkflowOrchestrator
 from app.schemas.api import FixRequest, FixResponse
+from app.shared import orchestrator
 from fastapi import APIRouter, HTTPException, status
 
 router = APIRouter(tags=["optimization"])
@@ -33,10 +33,7 @@ async def generate_fix(request: FixRequest) -> FixResponse:
         # Generate unique fix ID
         fix_id = str(uuid4())
         
-        # Initialize orchestrator
-        orchestrator = WorkflowOrchestrator()
-        
-        # Generate optimized workflow
+        # Generate optimized workflow using shared orchestrator
         result = await orchestrator.generate_fix(
             analysis_id=request.analysis_id,
             optimization_strategy=request.optimization_strategy,

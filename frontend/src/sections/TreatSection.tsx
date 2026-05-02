@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Modal, Tag, CodeSnippet, Loading } from '@carbon/react';
+import { Button, Modal, Tag, CodeSnippet, Loading, TextInput } from '@carbon/react';
 import { CheckmarkFilled, Restart } from '@carbon/icons-react';
 import { GENERATED_YAML, PR_DETAILS } from '../data/demo-data';
 import { api, FixResponse, PRResponse } from '../services/api';
@@ -28,19 +28,20 @@ const TreatSection: React.FC<TreatSectionProps> = ({
   const [state, setState] = useState<TreatState>('review');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [repository, setRepository] = useState('');
 
   const handleApprove = () => setState('confirming');
   
   const handleConfirm = async () => {
-    if (!fixData) return;
+    if (!fixData || !repository) {
+      setError('Please enter a repository name (e.g., owner/repo)');
+      return;
+    }
     
     setLoading(true);
     setError(null);
     
     try {
-      // Extract repository from workflow or use default
-      const repository = 'your-org/your-repo'; // TODO: Extract from actual workflow data
-      
       const result = await api.createPR({
         fix_id: fixData.fix_id,
         repository: repository,
@@ -216,16 +217,33 @@ const TreatSection: React.FC<TreatSectionProps> = ({
         </article>
       </div>
 
+      {/* Repository input */}
+      <div style={{ marginTop: 'var(--pd-space-07)' }}>
+        <TextInput
+          id="repository-input"
+          labelText="GitHub Repository"
+          placeholder="owner/repo (e.g., octocat/hello-world)"
+          value={repository}
+          onChange={(e) => setRepository(e.target.value)}
+          helperText="Enter the repository where you want to create the pull request"
+        />
+      </div>
+
       <div
         style={{
-          marginTop: 'var(--pd-space-08)',
+          marginTop: 'var(--pd-space-05)',
           display: 'flex',
           gap: 'var(--pd-space-04)',
           justifyContent: 'flex-end',
         }}
       >
         <Button kind="tertiary" onClick={onRestart}>Cancel</Button>
-        <Button kind="primary" size="lg" onClick={handleApprove}>
+        <Button
+          kind="primary"
+          size="lg"
+          onClick={handleApprove}
+          disabled={!repository}
+        >
           Approve and deploy
         </Button>
       </div>
@@ -241,9 +259,12 @@ const TreatSection: React.FC<TreatSectionProps> = ({
         size="sm"
       >
         <p>
-          This will open a pull request in <strong>{PR_DETAILS.repository}</strong> on
-          branch <strong>{PR_DETAILS.branch}</strong>. The pipeline change does not deploy
+          This will open a pull request in <strong>{repository || 'your repository'}</strong> on
+          branch <strong>optimization/workflow-improvements</strong>. The pipeline change does not deploy
           automatically — your team must merge the PR before the new workflow takes effect.
+        </p>
+        <p style={{ marginTop: 'var(--pd-space-04)', fontSize: 'var(--pd-font-size-body-sm)', color: 'var(--pd-color-text-secondary)' }}>
+          Note: Your GitHub token must have write access to this repository.
         </p>
       </Modal>
     </section>

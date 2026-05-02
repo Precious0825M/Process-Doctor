@@ -3,8 +3,8 @@
 from typing import Any, Dict
 from uuid import uuid4
 
-from app.pipeline.orchestrator import WorkflowOrchestrator
 from app.schemas.api import AnalyzeRequest, AnalyzeResponse
+from app.shared import orchestrator
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 
 router = APIRouter(tags=["analysis"])
@@ -37,10 +37,7 @@ async def analyze_workflow(
         # Generate unique analysis ID
         analysis_id = str(uuid4())
         
-        # Initialize orchestrator
-        orchestrator = WorkflowOrchestrator()
-        
-        # Process workflow analysis
+        # Process workflow analysis using shared orchestrator
         result = await orchestrator.analyze_workflow(
             workflow_input=request.workflow_input,
             source_type=request.source_type,

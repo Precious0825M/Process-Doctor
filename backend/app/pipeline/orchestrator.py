@@ -21,6 +21,9 @@ class WorkflowOrchestrator:
         self.diagnoser = DiagnoserAgent()
         self.fixer = FixerAgent()
         self.validator = WorkflowValidator()
+        # In-memory storage for analysis results (TODO: replace with Redis/DB)
+        self._analysis_cache: Dict[str, Any] = {}
+        self._fix_cache: Dict[str, Any] = {}
     
     async def analyze_workflow(
         self,
@@ -54,7 +57,15 @@ class WorkflowOrchestrator:
             logger.debug("Running AI diagnosis...")
             diagnosis = await self.diagnoser.diagnose(workflow_data, static_results)
             
-            # Step 4: Compile results
+            # Step 4: Store workflow data for later use in fix generation
+            self._analysis_cache[analysis_id] = {
+                "workflow_data": workflow_data,
+                "static_results": static_results,
+                "diagnosis": diagnosis
+            }
+            logger.debug(f"Stored analysis data for {analysis_id}")
+            
+            # Step 5: Compile results
             results = {
                 "workflow_structure": workflow_data.get("structure"),
                 "bottlenecks": diagnosis.get("bottlenecks", []),
@@ -94,26 +105,34 @@ class WorkflowOrchestrator:
         logger.info(f"Generating fix: {fix_id} for analysis: {analysis_id}")
         
         try:
-            # TODO: Retrieve analysis results from storage
-            # For now, we'll generate a fix directly
+            # Retrieve analysis results from storage
+            analysis_data = self._analysis_cache.get(analysis_id)
+            workflow_data = analysis_data.get("workflow_data") if analysis_data else None
             
             # Step 1: Generate optimized workflow
             logger.debug("Generating optimized workflow...")
             optimized = await self.fixer.generate_fix(
                 analysis_id=analysis_id,
-                strategy=optimization_strategy
+                strategy=optimization_strategy,
+                workflow_data=workflow_data
             )
             
             # Step 2: Validate optimized workflow
             logger.debug("Validating optimized workflow...")
-            validation = await self.validator.validate(optimized.get("workflow"))
+            workflow_to_validate = optimized.get("workflow", {})
+            validation = await self.validator.validate(workflow_to_validate)
             
             if not validation.get("valid"):
                 raise ValueError(f"Generated workflow is invalid: {validation.get('errors')}")
             
-            # Step 3: Compile results
+            # Step 3: Store fix data for PR creation
+            self._fix_cache[fix_id] = optimized
+            logger.debug(f"Stored fix data for {fix_id}")
+            
+            # Step 4: Compile results
             results = {
                 "optimized_workflow": optimized.get("workflow"),
+                "workflow_yaml": optimized.get("workflow_yaml"),
                 "changes": optimized.get("changes", []),
                 "improvements": {
                     "time_saved": optimized.get("time_saved", "Unknown"),

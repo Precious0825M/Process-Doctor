@@ -1,8 +1,10 @@
 """GitHub pull request creator"""
 
+import base64
 import logging
 from typing import Any, Dict, Optional
 
+import yaml
 from app.agents.pr_writer import PRWriterAgent
 from app.github.client import GitHubClient
 
@@ -15,6 +17,13 @@ class PRCreator:
     def __init__(self):
         self.client = GitHubClient()
         self.pr_writer = PRWriterAgent()
+        # In-memory storage for fix data (TODO: replace with Redis/DB)
+        self._fix_cache: Dict[str, Any] = {}
+    
+    def store_fix_data(self, fix_id: str, fix_data: Dict[str, Any]):
+        """Store fix data for later retrieval"""
+        self._fix_cache[fix_id] = fix_data
+        logger.info(f"Stored fix data for fix {fix_id}")
     
     async def create_pr(
         self,
@@ -40,11 +49,20 @@ class PRCreator:
         logger.info(f"Creating PR for fix {fix_id} in {repository}")
         
         try:
-            # TODO: Retrieve fix data from storage
-            fix_data = {
-                "changes": ["Optimized caching strategy", "Parallelized test jobs"],
-                "improvements": {"time_saved": "25m", "efficiency_gain": "62%"}
-            }
+            # Retrieve fix data from storage
+            fix_data = self._fix_cache.get(fix_id)
+            if not fix_data:
+                raise ValueError(f"Fix data not found for fix_id: {fix_id}")
+            
+            # Extract workflow YAML
+            workflow_yaml = fix_data.get("workflow_yaml")
+            if not workflow_yaml:
+                # Try to convert workflow dict to YAML
+                workflow_dict = fix_data.get("workflow", {})
+                if workflow_dict:
+                    workflow_yaml = yaml.dump(workflow_dict, default_flow_style=False)
+                else:
+                    raise ValueError("No workflow data found in fix")
             
             # Generate PR description if not provided
             if not description:
@@ -69,14 +87,60 @@ class PRCreator:
                 )
                 logger.info(f"Created branch: {branch}")
             except Exception as e:
-                logger.warning(f"Branch may already exist: {e}")
-                new_ref = repo.get_git_ref(f"heads/{branch}")
+                error_msg = str(e)
+                if "403" in error_msg or "Resource not accessible" in error_msg:
+                    raise ValueError(
+                        f"GitHub token does not have permission to create branches in {repository}. "
+                        "Please ensure your token has 'repo' scope and write access to this repository."
+                    )
+                logger.warning(f"Branch creation failed, attempting to use existing branch: {e}")
+                try:
+                    new_ref = repo.get_git_ref(f"heads/{branch}")
+                    logger.info(f"Using existing branch: {branch}")
+                except Exception as get_error:
+                    raise ValueError(
+                        f"Failed to create or access branch '{branch}': {error_msg}. "
+                        "The branch may not exist and you don't have permission to create it."
+                    )
             
-            # TODO: Commit optimized workflow files to the branch
-            # This would involve:
-            # 1. Get current workflow file content
-            # 2. Update with optimized version
-            # 3. Commit changes
+            # Commit optimized workflow file to the branch
+            workflow_path = ".github/workflows/ci.yml"  # Default path, could be configurable
+            
+            try:
+                # Try to get existing file to update it
+                existing_file = repo.get_contents(workflow_path, ref=default_branch)
+                
+                # Handle case where get_contents returns a list
+                if isinstance(existing_file, list):
+                    existing_file = existing_file[0]
+                
+                commit_message = f"Optimize CI/CD workflow\n\nChanges:\n"
+                for change in fix_data.get("changes", []):
+                    commit_message += f"- {change.get('description', 'Optimization')}\n"
+                
+                # Update the file
+                repo.update_file(
+                    path=workflow_path,
+                    message=commit_message,
+                    content=workflow_yaml,
+                    sha=existing_file.sha,
+                    branch=branch
+                )
+                logger.info(f"Updated workflow file: {workflow_path}")
+                
+            except Exception as e:
+                # File doesn't exist, create it
+                logger.info(f"Creating new workflow file: {workflow_path}")
+                commit_message = f"Add optimized CI/CD workflow\n\nChanges:\n"
+                for change in fix_data.get("changes", []):
+                    commit_message += f"- {change.get('description', 'Optimization')}\n"
+                
+                repo.create_file(
+                    path=workflow_path,
+                    message=commit_message,
+                    content=workflow_yaml,
+                    branch=branch
+                )
             
             # Create pull request
             pr = repo.create_pull(
