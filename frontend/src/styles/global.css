@@ -1,0 +1,492 @@
+/* ============================================================================
+   ProcessDoctor Global Stylesheet
+   ============================================================================
+   Owner: Adetutu (Tutu) Adenusi, UX Coordinator
+   Team Just Ship It | IBM Bob Dev Day Hackathon | May 3, 2026
+
+   This stylesheet defines the IBM-aligned design tokens for ProcessDoctor.
+   It is built directly on the IBM Carbon Design System token model so that
+   any component pulled from @carbon/react inherits these values cleanly.
+
+   USAGE
+   -----
+   1. Import this file at the root of the React app (src/index.tsx or App.tsx):
+         import './styles/global.css';
+   2. Import it AFTER the Carbon stylesheet so our tokens override defaults:
+         import '@carbon/styles/css/styles.css';
+         import './styles/global.css';
+   3. Reference tokens in components via var(--pd-token-name).
+
+   DO NOT hard-code colors, font sizes, or spacing values in components.
+   Always reference the tokens defined here. This guarantees consistency.
+   ============================================================================ */
+
+
+/* ----------------------------------------------------------------------------
+   1. DESIGN TOKENS
+   ---------------------------------------------------------------------------- */
+
+:root {
+  /* --- Color: Brand (IBM-aligned) --- */
+  --pd-color-primary:           #0F62FE; /* IBM Blue 60 - primary action */
+  --pd-color-primary-hover:     #0353E9; /* IBM Blue 70 */
+  --pd-color-primary-active:    #002D9C; /* IBM Blue 80 */
+  --pd-color-primary-light:     #D0E2FF; /* IBM Blue 20 - subtle backgrounds */
+
+  /* --- Color: Surfaces --- */
+  --pd-color-background:        #FFFFFF; /* primary background */
+  --pd-color-surface:           #F4F4F4; /* card / elevated surface */
+  --pd-color-surface-hover:     #E8E8E8;
+  --pd-color-border-subtle:     #E0E0E0;
+  --pd-color-border-strong:     #8D8D8D;
+
+  /* --- Color: Text --- */
+  --pd-color-text-primary:      #161616; /* Carbon Gray 100 */
+  --pd-color-text-secondary:    #525252; /* Carbon Gray 70 */
+  --pd-color-text-tertiary:     #8D8D8D; /* Carbon Gray 50 */
+  --pd-color-text-inverse:      #FFFFFF;
+  --pd-color-text-on-primary:   #FFFFFF;
+  --pd-color-text-link:         #0F62FE;
+
+  /* --- Color: Status (semantic) --- */
+  --pd-color-error:             #DA1E28; /* bottleneck / alert */
+  --pd-color-error-subtle:      #FFF1F1;
+  --pd-color-error-border:      #FFB3B8;
+  --pd-color-success:           #24A148; /* improvement / success */
+  --pd-color-success-subtle:    #DEFBE6;
+  --pd-color-success-border:    #A7F0BA;
+  --pd-color-warning:           #F1C21B;
+  --pd-color-warning-subtle:    #FCF4D6;
+  --pd-color-info:              #0043CE;
+  --pd-color-info-subtle:       #EDF5FF;
+
+  /* --- Color: Stage indicators (Diagnose / Prescribe / Treat) --- */
+  --pd-color-stage-diagnose:    #0F62FE; /* IBM Blue */
+  --pd-color-stage-prescribe:   #6929C4; /* IBM Purple */
+  --pd-color-stage-treat:       #24A148; /* IBM Green */
+
+  /* --- Typography --- */
+  --pd-font-family-sans:        'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --pd-font-family-mono:        'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Carbon Type Scale (rem-based, accessible to zoom) */
+  --pd-font-size-caption:       0.75rem;   /* 12px - captions, helper text */
+  --pd-font-size-label:         0.875rem;  /* 14px - labels, body small */
+  --pd-font-size-body:          1rem;      /* 16px - body */
+  --pd-font-size-body-lg:       1.125rem;  /* 18px - body large */
+  --pd-font-size-heading-01:    1rem;      /* 16px - h6 */
+  --pd-font-size-heading-02:    1.125rem;  /* 18px - h5 */
+  --pd-font-size-heading-03:    1.25rem;   /* 20px - h4 */
+  --pd-font-size-heading-04:    1.75rem;   /* 28px - h3 */
+  --pd-font-size-heading-05:    2rem;      /* 32px - h2 */
+  --pd-font-size-heading-06:    2.625rem;  /* 42px - h1 / display */
+  --pd-font-size-display:       3.375rem;  /* 54px - hero numbers */
+
+  --pd-font-weight-light:       300;
+  --pd-font-weight-regular:     400;
+  --pd-font-weight-medium:      500;
+  --pd-font-weight-semibold:    600;
+
+  --pd-line-height-tight:       1.25;
+  --pd-line-height-normal:      1.5;
+  --pd-line-height-loose:       1.625;
+
+  --pd-letter-spacing-tight:    -0.01em;
+  --pd-letter-spacing-normal:   0;
+  --pd-letter-spacing-wide:     0.16px;
+
+  /* --- Spacing (8px base grid, Carbon spacing scale) --- */
+  --pd-space-01:                0.125rem;  /* 2px  */
+  --pd-space-02:                0.25rem;   /* 4px  */
+  --pd-space-03:                0.5rem;    /* 8px  - base unit */
+  --pd-space-04:                0.75rem;   /* 12px */
+  --pd-space-05:                1rem;      /* 16px */
+  --pd-space-06:                1.5rem;    /* 24px */
+  --pd-space-07:                2rem;      /* 32px */
+  --pd-space-08:                2.5rem;    /* 40px */
+  --pd-space-09:                3rem;      /* 48px */
+  --pd-space-10:                4rem;      /* 64px */
+  --pd-space-11:                5rem;      /* 80px */
+  --pd-space-12:                6rem;      /* 96px */
+  --pd-space-13:                10rem;     /* 160px */
+
+  /* --- Layout --- */
+  --pd-content-max-width:       1200px;
+  --pd-content-padding:         var(--pd-space-06);
+  --pd-content-padding-mobile:  var(--pd-space-05);
+  --pd-grid-columns:            12;
+  --pd-grid-gutter:             var(--pd-space-06);
+
+  /* --- Borders & radius (Carbon: subtle, mostly square) --- */
+  --pd-border-width:            1px;
+  --pd-border-width-thick:      2px;
+  --pd-radius-sm:               2px;       /* Carbon's signature subtle radius */
+  --pd-radius-md:               4px;
+  --pd-radius-lg:               8px;       /* used sparingly */
+
+  /* --- Shadows (Carbon: very subtle, no drop-shadow consumer aesthetic) --- */
+  --pd-shadow-sm:               0 1px 2px rgba(0, 0, 0, 0.04);
+  --pd-shadow-md:               0 2px 6px rgba(0, 0, 0, 0.08);
+
+  /* --- Motion --- */
+  --pd-duration-fast:           70ms;
+  --pd-duration-moderate:       240ms;
+  --pd-duration-slow:           400ms;
+  --pd-easing-standard:         cubic-bezier(0.2, 0, 0.38, 0.9);
+  --pd-easing-entrance:         cubic-bezier(0, 0, 0.38, 0.9);
+  --pd-easing-exit:             cubic-bezier(0.2, 0, 1, 0.9);
+
+  /* --- Focus ring (accessibility) --- */
+  --pd-focus-ring-color:        #0F62FE;
+  --pd-focus-ring-width:        2px;
+  --pd-focus-ring-offset:       1px;
+
+  /* --- Z-index scale --- */
+  --pd-z-base:                  1;
+  --pd-z-dropdown:               100;
+  --pd-z-sticky:                 200;
+  --pd-z-modal-backdrop:         900;
+  --pd-z-modal:                  1000;
+  --pd-z-toast:                  1100;
+}
+
+
+/* ----------------------------------------------------------------------------
+   2. RESET & BASE
+   ---------------------------------------------------------------------------- */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--pd-font-family-sans);
+  font-size: var(--pd-font-size-body);
+  font-weight: var(--pd-font-weight-regular);
+  line-height: var(--pd-line-height-normal);
+  color: var(--pd-color-text-primary);
+  background-color: var(--pd-color-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 var(--pd-space-05) 0;
+  font-family: var(--pd-font-family-sans);
+  font-weight: var(--pd-font-weight-regular);
+  color: var(--pd-color-text-primary);
+  letter-spacing: var(--pd-letter-spacing-tight);
+  line-height: var(--pd-line-height-tight);
+}
+
+h1 { font-size: var(--pd-font-size-heading-06); }
+h2 { font-size: var(--pd-font-size-heading-05); }
+h3 { font-size: var(--pd-font-size-heading-04); }
+h4 { font-size: var(--pd-font-size-heading-03); font-weight: var(--pd-font-weight-semibold); }
+h5 { font-size: var(--pd-font-size-heading-02); font-weight: var(--pd-font-weight-semibold); }
+h6 { font-size: var(--pd-font-size-heading-01); font-weight: var(--pd-font-weight-semibold); }
+
+p {
+  margin: 0 0 var(--pd-space-05) 0;
+  line-height: var(--pd-line-height-normal);
+}
+
+a {
+  color: var(--pd-color-text-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--pd-duration-fast) var(--pd-easing-standard);
+}
+a:hover { color: var(--pd-color-primary-hover); }
+
+code, pre {
+  font-family: var(--pd-font-family-mono);
+  font-size: 0.9em;
+}
+
+pre {
+  background-color: var(--pd-color-surface);
+  padding: var(--pd-space-05);
+  overflow-x: auto;
+  border-radius: var(--pd-radius-sm);
+}
+
+button { font-family: inherit; cursor: pointer; }
+
+
+/* ----------------------------------------------------------------------------
+   3. ACCESSIBILITY
+   ---------------------------------------------------------------------------- */
+
+/* Visible focus ring for keyboard users (WCAG 2.4.7) */
+*:focus-visible {
+  outline: var(--pd-focus-ring-width) solid var(--pd-focus-ring-color);
+  outline-offset: var(--pd-focus-ring-offset);
+}
+
+/* Skip-to-main-content link (WCAG 2.4.1) */
+.pd-skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  padding: var(--pd-space-04) var(--pd-space-05);
+  background: var(--pd-color-primary);
+  color: var(--pd-color-text-on-primary);
+  text-decoration: none;
+  font-weight: var(--pd-font-weight-semibold);
+  z-index: var(--pd-z-toast);
+  transition: top var(--pd-duration-fast) var(--pd-easing-standard);
+}
+.pd-skip-link:focus { top: 0; }
+
+/* Visually hidden (screen-reader only) */
+.pd-sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0);
+  white-space: nowrap; border: 0;
+}
+
+/* Honor reduced-motion preference (WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* ----------------------------------------------------------------------------
+   4. LAYOUT PRIMITIVES
+   ---------------------------------------------------------------------------- */
+
+.pd-container {
+  width: 100%;
+  max-width: var(--pd-content-max-width);
+  margin: 0 auto;
+  padding: 0 var(--pd-content-padding);
+}
+
+@media (max-width: 672px) {
+  .pd-container { padding: 0 var(--pd-content-padding-mobile); }
+}
+
+.pd-stack > * + * { margin-top: var(--pd-space-05); }
+.pd-stack-sm > * + * { margin-top: var(--pd-space-03); }
+.pd-stack-lg > * + * { margin-top: var(--pd-space-07); }
+
+
+/* ----------------------------------------------------------------------------
+   5. STAGE INDICATOR (Diagnose / Prescribe / Treat)
+   Visible at the top of every screen so users always know where they are.
+   ---------------------------------------------------------------------------- */
+
+.pd-stage-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--pd-space-04);
+  padding: var(--pd-space-05) 0;
+  border-bottom: 1px solid var(--pd-color-border-subtle);
+}
+
+.pd-stage-indicator__step {
+  display: flex;
+  align-items: center;
+  gap: var(--pd-space-03);
+  color: var(--pd-color-text-tertiary);
+  font-size: var(--pd-font-size-label);
+  font-weight: var(--pd-font-weight-medium);
+}
+
+.pd-stage-indicator__step--active {
+  color: var(--pd-color-text-primary);
+}
+
+.pd-stage-indicator__step--complete {
+  color: var(--pd-color-success);
+}
+
+.pd-stage-indicator__number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--pd-color-surface);
+  color: var(--pd-color-text-tertiary);
+  font-size: var(--pd-font-size-caption);
+  font-weight: var(--pd-font-weight-semibold);
+}
+
+.pd-stage-indicator__step--active .pd-stage-indicator__number {
+  background: var(--pd-color-primary);
+  color: var(--pd-color-text-on-primary);
+}
+
+.pd-stage-indicator__step--complete .pd-stage-indicator__number {
+  background: var(--pd-color-success);
+  color: var(--pd-color-text-on-primary);
+}
+
+.pd-stage-indicator__divider {
+  flex: 1;
+  height: 1px;
+  background: var(--pd-color-border-subtle);
+  max-width: 4rem;
+}
+
+
+/* ----------------------------------------------------------------------------
+   6. METRIC CARD (used heavily on Diagnose & Prescribe screens)
+   ---------------------------------------------------------------------------- */
+
+.pd-metric {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pd-space-02);
+  padding: var(--pd-space-06);
+  background: var(--pd-color-background);
+  border: 1px solid var(--pd-color-border-subtle);
+  border-radius: var(--pd-radius-sm);
+}
+
+.pd-metric__label {
+  font-size: var(--pd-font-size-label);
+  color: var(--pd-color-text-secondary);
+  font-weight: var(--pd-font-weight-regular);
+}
+
+.pd-metric__value {
+  font-size: var(--pd-font-size-heading-05);
+  color: var(--pd-color-text-primary);
+  font-weight: var(--pd-font-weight-light);
+  line-height: var(--pd-line-height-tight);
+  letter-spacing: var(--pd-letter-spacing-tight);
+  font-feature-settings: 'tnum' 1; /* tabular numerals for clean alignment */
+}
+
+.pd-metric__value--alert { color: var(--pd-color-error); }
+.pd-metric__value--success { color: var(--pd-color-success); }
+
+.pd-metric__delta {
+  font-size: var(--pd-font-size-label);
+  font-weight: var(--pd-font-weight-medium);
+}
+.pd-metric__delta--positive { color: var(--pd-color-success); }
+.pd-metric__delta--negative { color: var(--pd-color-error); }
+
+
+/* ----------------------------------------------------------------------------
+   7. WORKFLOW GRAPH NODES
+   For the visual workflow visualization on Diagnose & Prescribe screens.
+   ---------------------------------------------------------------------------- */
+
+.pd-node {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--pd-space-02);
+  padding: var(--pd-space-05) var(--pd-space-06);
+  background: var(--pd-color-background);
+  border: 2px solid var(--pd-color-border-subtle);
+  border-radius: var(--pd-radius-sm);
+  min-width: 8rem;
+  text-align: center;
+  font-size: var(--pd-font-size-label);
+  color: var(--pd-color-text-primary);
+  position: relative;
+  transition: border-color var(--pd-duration-moderate) var(--pd-easing-standard),
+              box-shadow var(--pd-duration-moderate) var(--pd-easing-standard);
+}
+
+.pd-node--bottleneck {
+  border-color: var(--pd-color-error);
+  background: var(--pd-color-error-subtle);
+}
+.pd-node--bottleneck::before {
+  /* WCAG: never use color alone to convey state. Add icon + label. */
+  content: '';
+  display: inline-block;
+  width: 1rem; height: 1rem;
+  background-color: var(--pd-color-error);
+  /* Inline SVG warning triangle for the bottleneck indicator */
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1L1 14h14L8 1zm0 5v4M8 12v.01' stroke='black' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+}
+
+.pd-node--optimized {
+  border-color: var(--pd-color-success);
+  background: var(--pd-color-success-subtle);
+}
+
+.pd-node__label { font-weight: var(--pd-font-weight-medium); }
+.pd-node__time {
+  font-size: var(--pd-font-size-caption);
+  color: var(--pd-color-text-secondary);
+  font-family: var(--pd-font-family-mono);
+}
+
+
+/* ----------------------------------------------------------------------------
+   8. REASONING PANEL ("Bob is thinking" — agent-value differentiator)
+   ---------------------------------------------------------------------------- */
+
+.pd-reasoning {
+  background: var(--pd-color-surface);
+  border-left: 4px solid var(--pd-color-primary);
+  padding: var(--pd-space-06);
+  font-family: var(--pd-font-family-mono);
+  font-size: var(--pd-font-size-label);
+  color: var(--pd-color-text-secondary);
+  line-height: var(--pd-line-height-loose);
+}
+
+.pd-reasoning__header {
+  display: flex;
+  align-items: center;
+  gap: var(--pd-space-03);
+  margin-bottom: var(--pd-space-04);
+  font-family: var(--pd-font-family-sans);
+  font-size: var(--pd-font-size-label);
+  font-weight: var(--pd-font-weight-semibold);
+  color: var(--pd-color-text-primary);
+  letter-spacing: var(--pd-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.pd-reasoning__step {
+  margin-bottom: var(--pd-space-03);
+  padding-left: var(--pd-space-05);
+  position: relative;
+}
+.pd-reasoning__step::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--pd-color-primary);
+}
+
+
+/* ----------------------------------------------------------------------------
+   9. UTILITY CLASSES (sparing — prefer component classes)
+   ---------------------------------------------------------------------------- */
+
+.pd-text-secondary { color: var(--pd-color-text-secondary); }
+.pd-text-tertiary  { color: var(--pd-color-text-tertiary); }
+.pd-text-error     { color: var(--pd-color-error); }
+.pd-text-success   { color: var(--pd-color-success); }
+.pd-text-mono      { font-family: var(--pd-font-family-mono); }
+.pd-text-tabular   { font-feature-settings: 'tnum' 1; }
