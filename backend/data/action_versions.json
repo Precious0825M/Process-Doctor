@@ -1,0 +1,49 @@
+{
+  "actions": {
+    "checkout": {
+      "latest": "v4",
+      "versions": ["v2", "v3", "v4"],
+      "deprecated": ["v1"]
+    },
+    "setup-node": {
+      "latest": "v4",
+      "versions": ["v2", "v3", "v4"],
+      "deprecated": ["v1"]
+    },
+    "setup-python": {
+      "latest": "v5",
+      "versions": ["v3", "v4", "v5"],
+      "deprecated": ["v1", "v2"]
+    },
+    "cache": {
+      "latest": "v4",
+      "versions": ["v2", "v3", "v4"],
+      "deprecated": ["v1"]
+    },
+    "upload-artifact": {
+      "latest": "v4",
+      "versions": ["v2", "v3", "v4"],
+      "deprecated": ["v1"]
+    },
+    "download-artifact": {
+      "latest": "v4",
+      "versions": ["v2", "v3", "v4"],
+      "deprecated": ["v1"]
+    }
+  },
+  "best_practices": {
+    "caching": {
+      "node": "Use actions/cache with npm/yarn cache paths",
+      "python": "Use actions/cache with pip cache paths",
+      "docker": "Use docker layer caching"
+    },
+    "parallelization": {
+      "matrix": "Use matrix strategy for multi-environment testing",
+      "jobs": "Run independent jobs in parallel"
+    },
+    "security": {
+      "secrets": "Use GitHub secrets for sensitive data",
+      "permissions": "Use minimal required permissions"
+    }
+  }
+}

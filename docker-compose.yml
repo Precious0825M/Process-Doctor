@@ -1,0 +1,80 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: processdoctor-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - GRANITE_API_KEY=${GRANITE_API_KEY}
+      - BOB_API_KEY=${BOB_API_KEY}
+      - WATSONX_ORCHESTRATE_API_KEY=${WATSONX_ORCHESTRATE_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+      - ./backend/data:/app/data
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - processdoctor-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: processdoctor-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - processdoctor-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: processdoctor-postgres
+    environment:
+      - POSTGRES_USER=processdoctor
+      - POSTGRES_PASSWORD=processdoctor
+      - POSTGRES_DB=processdoctor
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - processdoctor-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: processdoctor-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - processdoctor-network
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  processdoctor-network:
+    driver: bridge
+
+# Made with Bob
