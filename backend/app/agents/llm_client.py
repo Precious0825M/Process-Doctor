@@ -37,9 +37,59 @@ class LLMClient:
         Returns:
             Generated text
         """
-        # TODO: Implement actual API call
-        logger.info("Generating LLM response")
-        return "Generated response"
+        logger.info(f"Generating LLM response (temp={temperature}, max_tokens={max_tokens})")
+        
+        try:
+            # Prepare request payload
+            payload = {
+                "model": getattr(settings, "granite_model", "granite-13b-chat-v2"),
+                "messages": [],
+                "temperature": temperature,
+                "max_tokens": max_tokens
+            }
+            
+            # Add system prompt if provided
+            if system_prompt:
+                payload["messages"].append({
+                    "role": "system",
+                    "content": system_prompt
+                })
+            
+            # Add user prompt
+            payload["messages"].append({
+                "role": "user",
+                "content": prompt
+            })
+            
+            # Make API request
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            response = await self.client.post(
+                f"{self.api_url}/chat/completions",
+                json=payload,
+                headers=headers
+            )
+            
+            response.raise_for_status()
+            result = response.json()
+            
+            # Extract generated text
+            if "choices" in result and len(result["choices"]) > 0:
+                generated_text = result["choices"][0]["message"]["content"]
+                logger.info(f"Successfully generated {len(generated_text)} characters")
+                return generated_text
+            else:
+                raise ValueError("No response generated from LLM")
+                
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error during LLM generation: {e.response.status_code} - {e.response.text}")
+            raise ValueError(f"LLM API error: {e.response.status_code}")
+        except Exception as e:
+            logger.error(f"Error during LLM generation: {str(e)}")
+            raise
     
     async def close(self):
         """Close HTTP client"""

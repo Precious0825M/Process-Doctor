@@ -33,7 +33,10 @@ class Settings(BaseSettings):
     )
     
     # IBM Granite API
-    granite_api_key: str = Field(..., description="IBM Granite API key")
+    granite_api_key: str = Field(
+        default="",
+        description="IBM Granite API key"
+    )
     granite_api_url: str = Field(
         default="https://api.granite.ibm.com/v1",
         description="IBM Granite API URL"
@@ -44,21 +47,30 @@ class Settings(BaseSettings):
     )
     
     # IBM Bob API
-    bob_api_key: str = Field(..., description="IBM Bob API key")
+    bob_api_key: str = Field(
+        default="",
+        description="IBM Bob API key"
+    )
     bob_api_url: str = Field(
         default="https://api.bob.ibm.com/v1",
         description="IBM Bob API URL"
     )
     
     # IBM watsonx Orchestrate
-    watsonx_orchestrate_api_key: str = Field(..., description="watsonx Orchestrate API key")
+    watsonx_orchestrate_api_key: str = Field(
+        default="",
+        description="watsonx Orchestrate API key"
+    )
     watsonx_orchestrate_url: str = Field(
         default="https://api.watsonx.ibm.com/orchestrate",
         description="watsonx Orchestrate URL"
     )
     
     # GitHub
-    github_token: str = Field(..., description="GitHub personal access token")
+    github_token: str = Field(
+        default="",
+        description="GitHub personal access token"
+    )
     github_api_url: str = Field(
         default="https://api.github.com",
         description="GitHub API URL"

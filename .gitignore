@@ -54,3 +54,24 @@ htmlcov/
 # Logs
 # =========================
 *.log
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+frontend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# build outputs
+frontend/dist/
+frontend/build/
+dist/
+build/
+
+
+# package manager locks (optional depending on project policy)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
