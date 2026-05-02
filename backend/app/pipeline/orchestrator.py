@@ -67,7 +67,7 @@ class WorkflowOrchestrator:
             
             # Step 5: Compile results
             results = {
-                "workflow_structure": workflow_data.get("structure"),
+                "workflow_structure": diagnosis.get("workflow_structure", workflow_data.get("structure")),
                 "bottlenecks": diagnosis.get("bottlenecks", []),
                 "metrics": {
                     "current_duration": diagnosis.get("current_duration", "Unknown"),
@@ -77,6 +77,8 @@ class WorkflowOrchestrator:
                 "recommendations": diagnosis.get("recommendations", []),
                 "estimated_improvement": diagnosis.get("estimated_improvement", "0%")
             }
+            
+            logger.info(f"Analysis results - Bottlenecks: {len(results['bottlenecks'])}, Duration: {results['metrics']['current_duration']} -> {results['metrics']['estimated_optimal']}")
             
             logger.info(f"Analysis completed: {analysis_id}")
             return results

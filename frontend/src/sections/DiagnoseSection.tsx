@@ -94,6 +94,22 @@ const DiagnoseSection: React.FC<DiagnoseSectionProps> = ({
   const bottlenecks = analysisData.bottlenecks || [];
   const metrics = analysisData.metrics || {};
   const bottleneckCount = bottlenecks.length;
+  const workflowStructure = analysisData.workflow_structure || {};
+  
+  // Convert workflow structure to nodes for visualization
+  const workflowNodes: any[] = [];
+  if (workflowStructure.jobs && Array.isArray(workflowStructure.jobs)) {
+    workflowStructure.jobs.forEach((job: any) => {
+      workflowNodes.push({
+        id: job.name || `job-${workflowNodes.length}`,
+        label: job.name || 'Job',
+        duration: job.duration || '',
+        isBottleneck: bottlenecks.some(b =>
+          job.name && b.label.toLowerCase().includes(job.name.toLowerCase())
+        )
+      });
+    });
+  }
 
   return (
     <section style={{ paddingTop: 'var(--pd-space-07)' }}>
@@ -103,7 +119,9 @@ const DiagnoseSection: React.FC<DiagnoseSectionProps> = ({
           Diagnosis: your CI/CD pipeline
         </h2>
         <p className="pd-text-secondary">
-          Bob analyzed your workflow and found three significant inefficiencies costing your team time on every commit.
+          {bottleneckCount > 0
+            ? `Bob analyzed your workflow and found ${bottleneckCount} significant inefficienc${bottleneckCount === 1 ? 'y' : 'ies'} costing your team time on every commit.`
+            : 'Bob analyzed your workflow and is identifying optimization opportunities.'}
         </p>
       </div>
 
@@ -136,7 +154,17 @@ const DiagnoseSection: React.FC<DiagnoseSectionProps> = ({
         <MetricCard label="Bottlenecks Found" value={bottleneckCount} variant="alert" />
       </div>
 
-      {/* Workflow graph */}
+      {/* Workflow visualization */}
+      {workflowNodes.length > 0 && (
+        <div style={{ marginBottom: 'var(--pd-space-08)' }}>
+          <h3 style={{ marginBottom: 'var(--pd-space-04)' }}>Current Workflow Structure</h3>
+          <WorkflowGraph
+            nodes={workflowNodes}
+            ariaLabel="Current workflow showing job execution sequence and bottlenecks"
+          />
+        </div>
+      )}
+
       {/* Bottleneck list - full width */}
       <div
         style={{
@@ -155,45 +183,51 @@ const DiagnoseSection: React.FC<DiagnoseSectionProps> = ({
           >
             Identified bottlenecks
           </div>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            {bottlenecks.map((b) => {
-              const sevColor =
-                b.severity === 'critical' ? 'var(--pd-color-error)' :
-                b.severity === 'medium' ? 'var(--pd-color-warning)' :
-                'var(--pd-color-text-tertiary)';
-              return (
-                <li
-                  key={b.id}
-                  style={{
-                    padding: 'var(--pd-space-04) 0',
-                    borderBottom: '1px solid var(--pd-color-border-subtle)',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--pd-space-03)' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 'var(--pd-font-weight-medium)', marginBottom: 'var(--pd-space-02)' }}>
-                        <span aria-hidden="true" style={{ color: sevColor, marginRight: '0.5em' }}>●</span>
-                        {b.label}
+          {bottlenecks.length > 0 ? (
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {bottlenecks.map((b) => {
+                const sevColor =
+                  b.severity === 'critical' ? 'var(--pd-color-error)' :
+                  b.severity === 'medium' ? 'var(--pd-color-warning)' :
+                  'var(--pd-color-text-tertiary)';
+                return (
+                  <li
+                    key={b.id}
+                    style={{
+                      padding: 'var(--pd-space-04) 0',
+                      borderBottom: '1px solid var(--pd-color-border-subtle)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--pd-space-03)' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 'var(--pd-font-weight-medium)', marginBottom: 'var(--pd-space-02)' }}>
+                          <span aria-hidden="true" style={{ color: sevColor, marginRight: '0.5em' }}>●</span>
+                          {b.label}
+                        </div>
+                        <div style={{ fontSize: 'var(--pd-font-size-label)', color: 'var(--pd-color-text-secondary)' }}>
+                          Impact: {b.impact}
+                        </div>
+                        <div style={{ fontSize: 'var(--pd-font-size-label)', color: 'var(--pd-color-text-secondary)', marginTop: 'var(--pd-space-02)' }}>
+                          Fix: {b.fix}
+                        </div>
                       </div>
-                      <div style={{ fontSize: 'var(--pd-font-size-label)', color: 'var(--pd-color-text-secondary)' }}>
-                        Impact: {b.impact}
-                      </div>
-                      <div style={{ fontSize: 'var(--pd-font-size-label)', color: 'var(--pd-color-text-secondary)', marginTop: 'var(--pd-space-02)' }}>
-                        Fix: {b.fix}
-                      </div>
+                      <Tag
+                        type={b.severity === 'critical' ? 'red' : b.severity === 'medium' ? 'magenta' : 'gray'}
+                        size="sm"
+                      >
+                        <span className="pd-sr-only">Severity: </span>
+                        {b.severity}
+                      </Tag>
                     </div>
-                    <Tag
-                      type={b.severity === 'critical' ? 'red' : b.severity === 'medium' ? 'magenta' : 'gray'}
-                      size="sm"
-                    >
-                      <span className="pd-sr-only">Severity: </span>
-                      {b.severity}
-                    </Tag>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="pd-text-secondary" style={{ padding: 'var(--pd-space-04)' }}>
+              No specific bottlenecks identified. The AI analysis may need more detailed workflow information.
+            </p>
+          )}
         </Tile>
       </div>
 

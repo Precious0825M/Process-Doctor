@@ -15,7 +15,7 @@ class AnalyzeResponse(BaseModel):
     """Response schema for workflow analysis"""
     analysis_id: str = Field(..., description="Unique analysis identifier")
     status: str = Field(..., description="Analysis status")
-    workflow_structure: Optional[Dict[str, Any]] = Field(None, description="Workflow structure")
+    workflow_structure: Optional[Dict[str, Any]] = Field(None, description="Workflow structure with jobs and dependencies")
     bottlenecks: List[Dict[str, Any]] = Field(default_factory=list, description="Identified bottlenecks")
     metrics: Dict[str, Any] = Field(default_factory=dict, description="Performance metrics")
     recommendations: List[str] = Field(default_factory=list, description="Optimization recommendations")

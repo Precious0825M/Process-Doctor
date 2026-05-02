@@ -92,14 +92,20 @@ Workflow Information:
 Static Analysis:
 {static_results}
 
-Please provide:
-1. List of bottlenecks with severity (critical/medium/low)
-2. Impact of each bottleneck
-3. Specific recommendations to fix each issue
-4. Estimated time savings
+Please provide a comprehensive analysis including:
+1. Current workflow duration estimate (e.g., "45 minutes", "1.5 hours")
+2. Optimal workflow duration after fixes (e.g., "18 minutes", "30 minutes")
+3. Efficiency score (0-100, where 100 is optimal)
+4. List of bottlenecks with severity (critical/medium/low)
+5. Impact of each bottleneck
+6. Specific recommendations to fix each issue
+7. Workflow structure showing jobs and their dependencies
 
-Format your response as JSON with this structure:
+Format your response as JSON with this EXACT structure:
 {{
+  "current_duration": "45 minutes",
+  "estimated_optimal": "18 minutes",
+  "efficiency_score": 40,
   "bottlenecks": [
     {{
       "id": "unique-id",
@@ -110,8 +116,24 @@ Format your response as JSON with this structure:
     }}
   ],
   "recommendations": ["recommendation 1", "recommendation 2"],
-  "estimated_improvement": "percentage"
+  "estimated_improvement": "60%",
+  "workflow_structure": {{
+    "jobs": [
+      {{
+        "name": "job-name",
+        "duration": "5 minutes",
+        "dependencies": ["job1", "job2"],
+        "parallel": true
+      }}
+    ]
+  }}
 }}
+
+IMPORTANT:
+- Provide realistic time estimates based on the workflow complexity
+- current_duration should reflect the actual workflow execution time
+- estimated_optimal should be achievable after applying your recommendations
+- Include all fields in your response
 """
         logger.debug(f"Built prompt with {len(prompt)} characters")
         return prompt
@@ -156,14 +178,78 @@ Format your response as JSON with this structure:
     
     def _parse_response(self, response: str) -> Dict[str, Any]:
         """Parse AI response into structured format"""
-        # TODO: Implement proper response parsing
-        return {
-            "bottlenecks": [],
-            "current_duration": "40m",
-            "estimated_optimal": "15m",
-            "efficiency_score": 45,
-            "recommendations": [],
-            "estimated_improvement": "62%"
-        }
+        import json
+        import re
+        
+        try:
+            # Try to extract JSON from response
+            # Look for JSON object in the response
+            json_match = re.search(r'\{[\s\S]*\}', response)
+            if json_match:
+                parsed = json.loads(json_match.group())
+                
+                # Ensure bottlenecks have required fields
+                bottlenecks = parsed.get("bottlenecks", [])
+                for i, bottleneck in enumerate(bottlenecks):
+                    # Add id if missing
+                    if "id" not in bottleneck:
+                        bottleneck["id"] = f"bottleneck-{i+1}"
+                    # Ensure all required fields exist
+                    bottleneck.setdefault("label", "Unnamed bottleneck")
+                    bottleneck.setdefault("severity", "medium")
+                    bottleneck.setdefault("impact", "No impact description provided")
+                    bottleneck.setdefault("fix", "No fix recommendation provided")
+                
+                logger.info(f"Successfully parsed {len(bottlenecks)} bottlenecks from AI response")
+                
+                # Extract workflow structure if provided
+                workflow_structure = parsed.get("workflow_structure", {})
+                
+                result = {
+                    "bottlenecks": bottlenecks,
+                    "current_duration": parsed.get("current_duration", "Unknown"),
+                    "estimated_optimal": parsed.get("estimated_optimal", "Unknown"),
+                    "efficiency_score": parsed.get("efficiency_score", 0),
+                    "recommendations": parsed.get("recommendations", []),
+                    "estimated_improvement": parsed.get("estimated_improvement", "0%"),
+                    "workflow_structure": workflow_structure
+                }
+                
+                logger.info(f"Parsed metrics - Duration: {result['current_duration']} -> {result['estimated_optimal']}, Score: {result['efficiency_score']}%")
+                
+                return result
+            else:
+                logger.warning("No JSON found in AI response, returning empty diagnosis")
+                return {
+                    "bottlenecks": [],
+                    "current_duration": "Unknown",
+                    "estimated_optimal": "Unknown",
+                    "efficiency_score": 0,
+                    "recommendations": [],
+                    "estimated_improvement": "0%"
+                }
+                
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse AI response as JSON: {e}")
+            logger.error(f"Response was: {response[:500]}...")
+            # Return empty diagnosis on parse error
+            return {
+                "bottlenecks": [],
+                "current_duration": "Unknown",
+                "estimated_optimal": "Unknown",
+                "efficiency_score": 0,
+                "recommendations": [],
+                "estimated_improvement": "0%"
+            }
+        except Exception as e:
+            logger.error(f"Unexpected error parsing AI response: {e}")
+            return {
+                "bottlenecks": [],
+                "current_duration": "Unknown",
+                "estimated_optimal": "Unknown",
+                "efficiency_score": 0,
+                "recommendations": [],
+                "estimated_improvement": "0%"
+            }
 
 # Made with Bob
