@@ -227,6 +227,20 @@ jobs:
             "diff": "--- original.yml\n+++ optimized.yml\n@@ -10,6 +10,12 @@\n+      - name: Cache dependencies\n+        uses: actions/cache@v3\n+        with:\n+          path: node_modules\n+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}"
         }
     
+    def _sanitize_workflow_dict(self, workflow: Any) -> Any:
+        """Recursively sanitize workflow dict to ensure all values are JSON-serializable"""
+        if isinstance(workflow, dict):
+            return {str(k): self._sanitize_workflow_dict(v) for k, v in workflow.items()}
+        elif isinstance(workflow, list):
+            return [self._sanitize_workflow_dict(item) for item in workflow]
+        elif isinstance(workflow, bool):
+            # Convert booleans to strings to avoid Pydantic validation issues
+            return str(workflow).lower()
+        elif workflow is None:
+            return None
+        else:
+            return workflow
+    
     def _parse_response(self, response: str, workflow_data: Dict[str, Any]) -> Dict[str, Any]:
         """Parse AI response into structured format"""
         try:
@@ -238,9 +252,11 @@ jobs:
                 # Ensure we have workflow_yaml
                 workflow_yaml = parsed.get("workflow_yaml", "")
                 
-                # Parse YAML to dict
+                # Parse YAML to dict and sanitize
                 try:
                     workflow_dict = yaml.safe_load(workflow_yaml)
+                    # Sanitize to ensure all values are JSON-serializable
+                    workflow_dict = self._sanitize_workflow_dict(workflow_dict)
                 except yaml.YAMLError as e:
                     logger.error(f"Failed to parse generated YAML: {e}")
                     workflow_dict = {}

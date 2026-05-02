@@ -4,7 +4,6 @@ import { ArrowRight, Warning } from '@carbon/icons-react';
 import MetricCard from '../components/MetricCard';
 import ReasoningPanel from '../components/ReasoningPanel';
 import WorkflowGraph from '../components/WorkflowGraph';
-import { CURRENT_WORKFLOW, CURRENT_METRICS, BOB_REASONING_STEPS, BOTTLENECKS } from '../data/demo-data';
 import { api, AnalyzeResponse } from '../services/api';
 
 interface DiagnoseSectionProps {
@@ -87,9 +86,13 @@ const DiagnoseSection: React.FC<DiagnoseSectionProps> = ({
     );
   }
 
-  // Use API data if available, otherwise fall back to demo data
-  const bottlenecks = analysisData?.bottlenecks || BOTTLENECKS;
-  const metrics = analysisData?.metrics || CURRENT_METRICS;
+  // Use only real API data - no fallbacks
+  if (!analysisData) {
+    return null; // Should never happen as loading/error states are handled above
+  }
+
+  const bottlenecks = analysisData.bottlenecks || [];
+  const metrics = analysisData.metrics || {};
   const bottleneckCount = bottlenecks.length;
 
   return (
@@ -116,41 +119,30 @@ const DiagnoseSection: React.FC<DiagnoseSectionProps> = ({
         aria-label="Current workflow metrics"
       >
         <MetricCard
-          label="Cycle time"
-          value={'current_duration' in metrics && typeof metrics.current_duration === 'string' ? metrics.current_duration : CURRENT_METRICS.cycleTime}
-          unit={'current_duration' in metrics && typeof metrics.current_duration === 'string' ? '' : 'min'}
+          label="Current Duration"
+          value={metrics.current_duration || 'Unknown'}
           variant="alert"
         />
         <MetricCard
-          label="Efficiency score"
-          value={'efficiency_score' in metrics && metrics.efficiency_score !== undefined ? `${metrics.efficiency_score}%` : 'N/A'}
+          label="Estimated Optimal"
+          value={metrics.estimated_optimal || 'Unknown'}
+          variant="success"
+        />
+        <MetricCard
+          label="Efficiency Score"
+          value={metrics.efficiency_score !== undefined ? `${metrics.efficiency_score}%` : 'N/A'}
           variant="alert"
         />
-        <MetricCard label="Bottlenecks" value={bottleneckCount} variant="alert" />
-        <MetricCard label="Pipeline runs / week" value={CURRENT_METRICS.runsPerWeek} />
+        <MetricCard label="Bottlenecks Found" value={bottleneckCount} variant="alert" />
       </div>
 
       {/* Workflow graph */}
-      <h3 style={{ marginBottom: 'var(--pd-space-04)' }}>Current workflow</h3>
-      <WorkflowGraph
-        nodes={CURRENT_WORKFLOW}
-        ariaLabel="Current CI/CD pipeline showing six steps with three bottlenecks"
-      />
-
-      {/* Two-column: Bob's reasoning + bottleneck list */}
+      {/* Bottleneck list - full width */}
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-          gap: 'var(--pd-space-06)',
           marginTop: 'var(--pd-space-07)',
         }}
       >
-        <ReasoningPanel
-          title="Bob's analysis"
-          steps={BOB_REASONING_STEPS}
-        />
-
         <Tile style={{ padding: 'var(--pd-space-06)' }}>
           <div
             style={{

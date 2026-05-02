@@ -2,13 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Button, Tag, Loading } from '@carbon/react';
 import { ArrowRight } from '@carbon/icons-react';
 import MetricCard from '../components/MetricCard';
-import WorkflowGraph from '../components/WorkflowGraph';
-import {
-  CURRENT_WORKFLOW,
-  OPTIMIZED_WORKFLOW,
-  CURRENT_METRICS,
-  OPTIMIZED_METRICS,
-} from '../data/demo-data';
 import { api, AnalyzeResponse, FixResponse } from '../services/api';
 
 interface PrescribeSectionProps {
@@ -90,126 +83,62 @@ const PrescribeSection: React.FC<PrescribeSectionProps> = ({
     );
   }
 
-  // Calculate metrics from API data or use demo data
-  const timeReduction = fixData?.improvements?.efficiency_gain
+  // Use only real API data
+  if (!fixData) {
+    return null; // Should never happen as loading/error states are handled above
+  }
+
+  const timeReduction = fixData.improvements?.efficiency_gain
     ? parseInt(fixData.improvements.efficiency_gain)
-    : Math.round(((CURRENT_METRICS.cycleTime - OPTIMIZED_METRICS.cycleTime) / CURRENT_METRICS.cycleTime) * 100);
+    : 0;
   
-  const minutesSaved = CURRENT_METRICS.cycleTime - OPTIMIZED_METRICS.cycleTime;
-  const hoursSavedPerWeek = Math.round((minutesSaved * CURRENT_METRICS.runsPerWeek) / 60);
+  const timeSaved = fixData.improvements?.time_saved || 'Unknown';
+  const optimizationsApplied = fixData.improvements?.optimizations_applied || 0;
 
   return (
     <section style={{ paddingTop: 'var(--pd-space-07)' }}>
       <div style={{ marginBottom: 'var(--pd-space-07)' }}>
-        <Tag type="green">Estimated {timeReduction}% time reduction</Tag>
+        <Tag type="green">{timeReduction}% improvement</Tag>
         <h2 style={{ marginTop: 'var(--pd-space-04)', marginBottom: 'var(--pd-space-03)' }}>
-          Prescription: an optimized pipeline
+          Optimized Workflow Generated
         </h2>
         <p className="pd-text-secondary">
-          IBM Granite restructured your workflow to parallelize tests, eliminate manual approvals, and cache dependencies.
+          {optimizationsApplied} optimization{optimizationsApplied !== 1 ? 's' : ''} applied to improve your workflow efficiency.
         </p>
       </div>
 
-      {/* Before / After comparison */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-          gap: 'var(--pd-space-06)',
-          marginBottom: 'var(--pd-space-08)',
-        }}
-      >
-        {/* BEFORE */}
-        <section
-          aria-label="Current workflow"
-          style={{
-            padding: 'var(--pd-space-06)',
-            background: 'var(--pd-color-error-subtle)',
-            border: '1px solid var(--pd-color-error-border)',
-            borderRadius: 'var(--pd-radius-sm)',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 'var(--pd-font-size-label)',
-              fontWeight: 'var(--pd-font-weight-semibold)',
-              color: 'var(--pd-color-error)',
-              textTransform: 'uppercase',
-              letterSpacing: 'var(--pd-letter-spacing-wide)',
-              marginBottom: 'var(--pd-space-04)',
-            }}
-          >
-            Before
-          </div>
-          <div
-            style={{
-              fontSize: 'var(--pd-font-size-display)',
-              fontWeight: 'var(--pd-font-weight-light)',
-              color: 'var(--pd-color-error)',
-              fontFeatureSettings: '"tnum" 1',
-              lineHeight: 1,
-              marginBottom: 'var(--pd-space-02)',
-            }}
-          >
-            {CURRENT_METRICS.cycleTime}
-            <span style={{ fontSize: '0.4em', marginLeft: '0.25em', color: 'var(--pd-color-text-secondary)' }}>min</span>
-          </div>
-          <div className="pd-text-secondary" style={{ marginBottom: 'var(--pd-space-05)' }}>
-            {CURRENT_METRICS.manualSteps} manual steps · {CURRENT_METRICS.bottlenecks} bottlenecks
-          </div>
-          <WorkflowGraph
-            nodes={CURRENT_WORKFLOW}
-            ariaLabel="Original workflow with bottlenecks"
-          />
-        </section>
-
-        {/* AFTER */}
-        <section
-          aria-label="Optimized workflow"
-          style={{
-            padding: 'var(--pd-space-06)',
-            background: 'var(--pd-color-success-subtle)',
-            border: '1px solid var(--pd-color-success-border)',
-            borderRadius: 'var(--pd-radius-sm)',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 'var(--pd-font-size-label)',
-              fontWeight: 'var(--pd-font-weight-semibold)',
-              color: 'var(--pd-color-success)',
-              textTransform: 'uppercase',
-              letterSpacing: 'var(--pd-letter-spacing-wide)',
-              marginBottom: 'var(--pd-space-04)',
-            }}
-          >
-            After
-          </div>
-          <div
-            style={{
-              fontSize: 'var(--pd-font-size-display)',
-              fontWeight: 'var(--pd-font-weight-light)',
-              color: 'var(--pd-color-success)',
-              fontFeatureSettings: '"tnum" 1',
-              lineHeight: 1,
-              marginBottom: 'var(--pd-space-02)',
-            }}
-          >
-            {OPTIMIZED_METRICS.cycleTime}
-            <span style={{ fontSize: '0.4em', marginLeft: '0.25em', color: 'var(--pd-color-text-secondary)' }}>min</span>
-          </div>
-          <div className="pd-text-secondary" style={{ marginBottom: 'var(--pd-space-05)' }}>
-            {OPTIMIZED_METRICS.manualSteps} manual steps · {OPTIMIZED_METRICS.bottlenecks} bottlenecks
-          </div>
-          <WorkflowGraph
-            nodes={OPTIMIZED_WORKFLOW}
-            ariaLabel="Optimized workflow with parallelized steps"
-          />
-        </section>
+      {/* Changes applied */}
+      <h3 style={{ marginBottom: 'var(--pd-space-04)' }}>Changes Applied</h3>
+      <div style={{ marginBottom: 'var(--pd-space-08)' }}>
+        {fixData.changes && fixData.changes.length > 0 ? (
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {fixData.changes.map((change, idx) => (
+              <li
+                key={idx}
+                style={{
+                  padding: 'var(--pd-space-04)',
+                  marginBottom: 'var(--pd-space-03)',
+                  background: 'var(--pd-color-success-subtle)',
+                  border: '1px solid var(--pd-color-success-border)',
+                  borderRadius: 'var(--pd-radius-sm)',
+                }}
+              >
+                <div style={{ fontWeight: 'var(--pd-font-weight-medium)', marginBottom: 'var(--pd-space-02)' }}>
+                  {change.type || 'Optimization'}
+                </div>
+                <div style={{ color: 'var(--pd-color-text-secondary)' }}>
+                  {change.description}
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="pd-text-secondary">No specific changes documented.</p>
+        )}
       </div>
 
-      {/* Detailed impact metrics */}
-      <h3 style={{ marginBottom: 'var(--pd-space-04)' }}>Estimated impact</h3>
+      {/* Impact metrics */}
+      <h3 style={{ marginBottom: 'var(--pd-space-04)' }}>Estimated Impact</h3>
       <div
         style={{
           display: 'grid',
@@ -217,14 +146,9 @@ const PrescribeSection: React.FC<PrescribeSectionProps> = ({
           gap: 'var(--pd-space-05)',
         }}
       >
-        <MetricCard label="Time saved per run" value={minutesSaved} unit="min" variant="success" />
-        <MetricCard label="Hours saved per week" value={hoursSavedPerWeek} unit="hrs" variant="success" />
-        <MetricCard label="Time reduction" value={`${timeReduction}%`} variant="success" />
-        <MetricCard
-          label="Manual steps removed"
-          value={CURRENT_METRICS.manualSteps - OPTIMIZED_METRICS.manualSteps}
-          variant="success"
-        />
+        <MetricCard label="Time Saved" value={timeSaved} variant="success" />
+        <MetricCard label="Efficiency Gain" value={`${timeReduction}%`} variant="success" />
+        <MetricCard label="Optimizations Applied" value={optimizationsApplied} variant="success" />
       </div>
 
       <div style={{ marginTop: 'var(--pd-space-08)', display: 'flex', justifyContent: 'flex-end' }}>

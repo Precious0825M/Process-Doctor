@@ -29,8 +29,33 @@ class GitHubClient:
         try:
             return self.client.get_repo(repo_name)
         except GithubException as e:
-            logger.error(f"Failed to get repository {repo_name}: {e}")
-            raise
+            if e.status == 404:
+                logger.error(f"Repository not found: {repo_name}")
+                raise ValueError(
+                    f"Repository '{repo_name}' not found. Please verify:\n"
+                    f"1. The repository exists\n"
+                    f"2. The repository name is correct (format: owner/repo)\n"
+                    f"3. Your GitHub token has access to this repository"
+                )
+            elif e.status == 401:
+                logger.error(f"Authentication failed for repository {repo_name}")
+                raise ValueError(
+                    f"GitHub authentication failed. Please verify:\n"
+                    f"1. Your GITHUB_TOKEN is valid\n"
+                    f"2. The token has not expired\n"
+                    f"3. The token has 'repo' scope"
+                )
+            elif e.status == 403:
+                logger.error(f"Access forbidden to repository {repo_name}")
+                raise ValueError(
+                    f"Access denied to repository '{repo_name}'. Please verify:\n"
+                    f"1. Your GitHub token has access to this repository\n"
+                    f"2. The repository is not private (or token has private repo access)\n"
+                    f"3. The token has 'repo' scope"
+                )
+            else:
+                logger.error(f"Failed to get repository {repo_name}: {e}")
+                raise ValueError(f"GitHub API error: {e.data.get('message', str(e))}")
     
     def get_workflow_file(self, repo_name: str, workflow_path: str) -> str:
         """

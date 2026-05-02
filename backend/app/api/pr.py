@@ -55,14 +55,45 @@ async def create_pull_request(request: PRRequest) -> PRResponse:
         )
         
     except ValueError as e:
+        # ValueError is raised for user-facing errors (repo not found, auth issues, etc.)
+        error_message = str(e)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            detail=error_message
         )
     except Exception as e:
+        # Log the full error for debugging
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"PR creation error:\n{error_trace}")
+        
+        # Return user-friendly error
+        error_message = str(e)
+        if "404" in error_message or "Not Found" in error_message:
+            error_message = (
+                "Repository not found or inaccessible. Please verify:\n"
+                "1. The repository exists and the name is correct (format: owner/repo)\n"
+                "2. Your GitHub token has access to this repository\n"
+                "3. The repository is not private (or your token has private repo access)"
+            )
+        elif "401" in error_message or "Unauthorized" in error_message:
+            error_message = (
+                "GitHub authentication failed. Please verify:\n"
+                "1. Your GITHUB_TOKEN environment variable is set correctly\n"
+                "2. The token has not expired\n"
+                "3. The token has 'repo' scope permissions"
+            )
+        elif "403" in error_message or "Forbidden" in error_message:
+            error_message = (
+                "Access denied. Please verify:\n"
+                "1. Your GitHub token has write access to this repository\n"
+                "2. The token has 'repo' scope permissions\n"
+                "3. You are not rate limited by GitHub API"
+            )
+        
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"PR creation failed: {str(e)}"
+            detail=f"PR creation failed: {error_message}"
         )
 
 
