@@ -254,9 +254,3 @@ Built for:
 
 Built during IBM Bob Dev Day Hackathon 🚀
 
----
-
-## 📄 License
-
-MIT (or specify as needed)
-
