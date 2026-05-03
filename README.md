@@ -139,8 +139,6 @@ Results + Feedback Loop
 | AI Models              | IBM Granite             |
 | Workflow Understanding | IBM Bob                 |
 | Orchestration          | IBM watsonx Orchestrate |
-| Database               | PostgreSQL (optional)   |
-| Cache                  | Redis (optional)        |
 
 ---
 
