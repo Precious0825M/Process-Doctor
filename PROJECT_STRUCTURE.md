@@ -307,9 +307,6 @@ All frontend components follow WCAG 2.1 Level AA standards:
 - ARIA labels and live regions
 - Motion reduction support
 
-## License
-
-MIT License (or as specified)
 
 ---
 
