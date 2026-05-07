@@ -2,7 +2,7 @@
 
 > **From workflow confusion → to automated optimization in minutes**
 
-ProcessDoctor is a **Bob-powered workflow intelligence and automation system** that helps developers and teams **analyze, optimize, and implement improvements** to their development workflows — with a focus on reducing repetitive tasks and accelerating delivery.
+ProcessDoctor is a **Bob-powered workflow intelligence and automation system** that helps developers and teams **analyze, optimize, and implement improvements** to their development workflows — with a focus on reducing repetitive tasks and accelerating delivery
 
 ---
 
